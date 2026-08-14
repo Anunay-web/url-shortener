@@ -3,6 +3,8 @@ const cors = require("cors");
 require("dotenv").config();
 
 const pool = require("./config/db");
+const urlRoutes = require("./routes/urlRoutes");
+const redirectRoutes = require("./routes/redirectRoutes");
 
 const app = express();
 
@@ -11,12 +13,9 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Welcome to the URL Shortener API",
-    });
-});
+app.use("/", redirectRoutes);
+
+app.use("/api/urls", urlRoutes);
 
 app.get("/api/db-test", async (req, res) => {
   try {
