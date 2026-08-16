@@ -3,7 +3,7 @@ const { nanoid } = require("nanoid");
 
 const createShortUrl = async (req, res) => {
   try {
-    const { originalUrl } = req.body;
+    const { originalUrl, expiresIn } = req.body;
 
     // validate input
     if (!originalUrl) {
@@ -21,15 +21,31 @@ const createShortUrl = async (req, res) => {
       });
     }
 
+    let expiresAt = null;
+
+if (expiresIn !== undefined) {
+  if (
+    !Number.isInteger(expiresIn) ||
+    expiresIn <= 0
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "expiresIn must be a positive integer in minutes",
+    });
+  }
+
+  expiresAt = new Date(Date.now() + expiresIn * 60 * 1000);
+}
+
     // generate unique short code
     const shortCode = nanoid(6);
 
     // save URL in PostgreSQL
     const result = await pool.query(
-      `INSERT INTO urls (original_url, short_code)
-       VALUES ($1, $2)
-       RETURNING id, original_url, short_code, created_at`,
-      [originalUrl, shortCode]
+      `INSERT INTO urls (original_url, short_code, expires_at)
+       VALUES ($1, $2, $3)
+       RETURNING id, original_url, short_code, created_at, expires_at`,
+      [originalUrl, shortCode, expiresAt]
     );
 
     const url = result.rows[0];
@@ -42,6 +58,7 @@ const createShortUrl = async (req, res) => {
         shortCode: url.short_code,
         shortUrl: `http://localhost:${process.env.PORT}/${url.short_code}`,
         createdAt: url.created_at,
+        expiresAt: url.expires_at,
       },
     });
   } catch (error) {
