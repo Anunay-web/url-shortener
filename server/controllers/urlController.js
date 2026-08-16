@@ -12,6 +12,14 @@ const createShortUrl = async (req, res) => {
         message: "Original URL is required",
       });
     }
+    try {
+      new URL(originalUrl);
+    } catch {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a valid URL",
+      });
+    }
 
     // generate unique short code
     const shortCode = nanoid(6);
