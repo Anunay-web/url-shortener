@@ -10,6 +10,12 @@ const redirectToOriginalUrl = async (req, res) => {
        WHERE short_code = $1`,
       [shortCode]
     );
+    await pool.query(
+  `UPDATE urls
+   SET click_count = click_count + 1
+   WHERE short_code = $1`,
+  [shortCode]
+);
 
     // short code does not exist
     if (result.rows.length === 0) {
