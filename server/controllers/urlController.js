@@ -71,4 +71,45 @@ if (expiresIn !== undefined) {
   }
 };
 
-module.exports = { createShortUrl };
+
+const getUrlStats = async (req, res) => {
+  try {
+    const { shortCode } = req.params;
+    
+    const result = await pool.query(
+      `SELECT original_url, short_code, click_count, created_at, expires_at
+      FROM urls
+      WHERE short_code = $1`,
+      [shortCode]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Short URL not found",
+      });
+    }
+    
+    const url = result.rows[0];
+    
+    return res.status(200).json({
+      success: true,
+      data: {
+        shortCode: url.short_code,
+        originalUrl: url.original_url,
+        clickCount: url.click_count,
+        createdAt: url.created_at,
+        expiresAt: url.expires_at,
+      },
+    });
+  } catch (error) {
+    console.error("Get URL stats error:", error);
+    
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get URL statistics",
+    });
+  }
+};
+
+module.exports = { createShortUrl, getUrlStats };
