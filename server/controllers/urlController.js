@@ -3,7 +3,7 @@ const { nanoid } = require("nanoid");
 
 const createShortUrl = async (req, res) => {
   try {
-    const { originalUrl, expiresIn } = req.body;
+    const { originalUrl, expiresIn,customCode } = req.body;
 
     // validate input
     if (!originalUrl) {
@@ -38,7 +38,25 @@ if (expiresIn !== undefined) {
 }
 
     // generate unique short code
-    const shortCode = nanoid(6);
+    let shortCode = nanoid(6);
+    if (customCode) {
+      const cleanedCode = customCode.trim();
+      if (!/^[a-zA-Z0-9_-]+$/.test(cleanedCode)) {
+        return res.status(400).json({
+          success: false,
+          message: "Custom code can only contain letters, numbers, hyphens and underscores",
+        });
+      }
+
+  if (cleanedCode.length < 3 || cleanedCode.length > 20) {
+    return res.status(400).json({
+      success: false,
+      message: "Custom code must be between 3 and 20 characters",
+    });
+  }
+
+  shortCode = cleanedCode;
+}
 
     // save URL in PostgreSQL
     const result = await pool.query(
@@ -63,6 +81,13 @@ if (expiresIn !== undefined) {
     });
   } catch (error) {
     console.error("Create short URL error:", error);
+
+    if (error.code === "23505") {
+      return res.status(409).json({
+        success: false,
+        message: "Custom code is already in use",
+      });
+    }
 
     res.status(500).json({
       success: false,
