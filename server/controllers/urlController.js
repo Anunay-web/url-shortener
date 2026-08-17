@@ -137,4 +137,38 @@ const getUrlStats = async (req, res) => {
   }
 };
 
-module.exports = { createShortUrl, getUrlStats };
+
+const deleteUrl = async (req, res) => {
+  try {
+    const { shortCode } = req.params;
+
+    const result = await pool.query(
+      `DELETE FROM urls
+       WHERE short_code = $1
+       RETURNING short_code`,
+      [shortCode]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Short URL not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Short URL deleted successfully",
+      shortCode: result.rows[0].short_code,
+    });
+  } catch (error) {
+    console.error("Delete URL error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete short URL",
+    });
+  }
+};
+
+module.exports = { createShortUrl, getUrlStats, deleteUrl };
