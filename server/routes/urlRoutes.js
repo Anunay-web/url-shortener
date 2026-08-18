@@ -1,9 +1,11 @@
 const express = require("express");
-const { createShortUrl, getUrlStats, deleteUrl  } = require("../controllers/urlController");
+const { createShortUrl, getUrlStats, deleteUrl, getAllUrls  } = require("../controllers/urlController");
 
 const router = express.Router();
 
 router.post("/", createShortUrl);
+
+router.get("/", getAllUrls);
 
 router.get("/:shortCode/stats", getUrlStats);
 

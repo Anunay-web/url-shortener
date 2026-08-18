@@ -171,4 +171,35 @@ const deleteUrl = async (req, res) => {
   }
 };
 
-module.exports = { createShortUrl, getUrlStats, deleteUrl };
+const getAllUrls = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, original_url, short_code, click_count, created_at, expires_at
+       FROM urls
+       ORDER BY created_at DESC`
+    );
+
+    return res.status(200).json({
+      success: true,
+      count: result.rows.length,
+      data: result.rows.map((url) => ({
+        id: url.id,
+        originalUrl: url.original_url,
+        shortCode: url.short_code,
+        shortUrl: `http://localhost:${process.env.PORT}/${url.short_code}`,
+        clickCount: url.click_count,
+        createdAt: url.created_at,
+        expiresAt: url.expires_at,
+      })),
+    });
+  } catch (error) {
+    console.error("Get all URLs error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get URLs",
+    });
+  }
+};
+
+module.exports = { createShortUrl, getUrlStats, deleteUrl, getAllUrls };
