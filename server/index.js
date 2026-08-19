@@ -5,6 +5,7 @@ require("dotenv").config();
 const pool = require("./config/db");
 const urlRoutes = require("./routes/urlRoutes");
 const redirectRoutes = require("./routes/redirectRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
@@ -16,6 +17,8 @@ app.use(express.json());
 app.use("/", redirectRoutes);
 
 app.use("/api/urls", urlRoutes);
+
+app.use("/api/auth", authRoutes);
 
 app.get("/api/db-test", async (req, res) => {
   try {
@@ -35,6 +38,8 @@ app.get("/api/db-test", async (req, res) => {
     });
   }
 });
+
+
 
 app.get("/api/health", (req, res) => {
     res.status(200).json({
