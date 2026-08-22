@@ -60,11 +60,21 @@ if (expiresIn !== undefined) {
 
     // save URL in PostgreSQL
     const result = await pool.query(
-      `INSERT INTO urls (original_url, short_code, expires_at)
-       VALUES ($1, $2, $3)
-       RETURNING id, original_url, short_code, created_at, expires_at`,
-      [originalUrl, shortCode, expiresAt]
-    );
+  `INSERT INTO urls (
+      original_url,
+      short_code,
+      expires_at,
+      user_id
+   )
+   VALUES ($1, $2, $3, $4)
+   RETURNING id, original_url, short_code, created_at, expires_at, user_id`,
+  [
+    originalUrl,
+    shortCode,
+    expiresAt,
+    req.user.userId,
+  ]
+);
 
     const url = result.rows[0];
 
