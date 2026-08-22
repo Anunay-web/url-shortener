@@ -6,10 +6,10 @@ const router = express.Router();
 
 router.post("/", authenticate, createShortUrl);
 
-router.get("/", getAllUrls);
+router.get("/", authenticate, getAllUrls);
 
-router.get("/:shortCode/stats", getUrlStats);
+router.get("/:shortCode/stats", authenticate, getUrlStats);
 
-router.delete("/:shortCode", deleteUrl);
+router.delete("/:shortCode", authenticate, deleteUrl);
 
 module.exports = router;

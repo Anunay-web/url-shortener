@@ -110,23 +110,24 @@ if (expiresIn !== undefined) {
 const getUrlStats = async (req, res) => {
   try {
     const { shortCode } = req.params;
-    
+
     const result = await pool.query(
       `SELECT original_url, short_code, click_count, created_at, expires_at
-      FROM urls
-      WHERE short_code = $1`,
-      [shortCode]
+       FROM urls
+       WHERE short_code = $1
+       AND user_id = $2`,
+      [shortCode, req.user.userId]
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
         message: "Short URL not found",
       });
     }
-    
+
     const url = result.rows[0];
-    
+
     return res.status(200).json({
       success: true,
       data: {
@@ -139,7 +140,7 @@ const getUrlStats = async (req, res) => {
     });
   } catch (error) {
     console.error("Get URL stats error:", error);
-    
+
     return res.status(500).json({
       success: false,
       message: "Failed to get URL statistics",
@@ -155,8 +156,9 @@ const deleteUrl = async (req, res) => {
     const result = await pool.query(
       `DELETE FROM urls
        WHERE short_code = $1
+       AND user_id = $2
        RETURNING short_code`,
-      [shortCode]
+      [shortCode, req.user.userId]
     );
 
     if (result.rows.length === 0) {
@@ -186,7 +188,9 @@ const getAllUrls = async (req, res) => {
     const result = await pool.query(
       `SELECT id, original_url, short_code, click_count, created_at, expires_at
        FROM urls
-       ORDER BY created_at DESC`
+       WHERE user_id = $1
+       ORDER BY created_at DESC`,
+       [req.user.userId]
     );
 
     return res.status(200).json({
