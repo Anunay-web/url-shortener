@@ -1,6 +1,7 @@
 const pool = require("../config/db");
 const { nanoid } = require("nanoid");
 
+
 const createShortUrl = async ({
   originalUrl,
   customCode,

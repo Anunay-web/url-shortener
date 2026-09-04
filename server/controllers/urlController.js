@@ -1,5 +1,5 @@
-const pool = require("../config/db");
 const urlService = require("../services/urlService");
+const logger = require("../utils/logger");
 
 const createShortUrl = async (req, res) => {
   try {
@@ -42,7 +42,7 @@ const createShortUrl = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Create URL error:", error);
+    logger.error("Create URL error:", error);
 
     return res.status(error.statusCode || 500).json({
       success: false,
@@ -72,7 +72,7 @@ const getUrlStats = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Get URL stats error:", error);
+    logger.error("Get URL stats error:", error);
 
     return res.status(error.statusCode || 500).json({
       success: false,
@@ -99,7 +99,7 @@ const deleteUrl = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Delete URL error:", error);
+    logger.error("Delete URL error:", error);
 
     return res.status(error.statusCode || 500).json({
       success: false,
@@ -112,6 +112,10 @@ const getAllUrls = async (req, res) => {
   try {
     const urls = await urlService.getAllUrls(req.user.userId);
 
+    logger.info("URLs fetched successfully", {
+  userId: req.user.userId,
+  count: urls.length,
+});
     return res.status(200).json({
       success: true,
       data: urls.map((url) => ({
@@ -124,7 +128,7 @@ const getAllUrls = async (req, res) => {
       })),
     });
   } catch (error) {
-    console.error("Get URLs error:", error);
+    logger.error("Get URLs error:", error);
 
     return res.status(500).json({
       success: false,
