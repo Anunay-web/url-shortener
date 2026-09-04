@@ -1,3 +1,5 @@
+const morgan = require("morgan");
+const logger = require("./utils/logger");
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -8,6 +10,15 @@ const redirectRoutes = require("./routes/redirectRoutes");
 const authRoutes = require("./routes/authRoutes");
 
 const app = express();
+app.use(
+  morgan("combined", {
+    stream: {
+      write: (message) => {
+        logger.info(message.trim());
+      },
+    },
+  })
+);
 
 const PORT = process.env.PORT || 5000;
 
