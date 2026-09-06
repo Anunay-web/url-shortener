@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const pool = require("../config/db");
+const logger = require("../utils/logger");
 
 const jwt = require("jsonwebtoken");
 
@@ -49,6 +50,10 @@ const registerUser = async (req, res) => {
 
     const user = result.rows[0];
 
+    logger.info("User registered successfully", {
+      userId: user.id,
+      email: user.email,
+    });
     return res.status(201).json({
       success: true,
       message: "User registered successfully",
@@ -76,15 +81,22 @@ const loginUser = async (req, res) => {
       });
     }
 
+    const normalizedEmail = email.toLowerCase().trim();
+
     // Find user
     const result = await pool.query(
       `SELECT id, name, email, password_hash
        FROM users
        WHERE email = $1`,
-      [email.toLowerCase().trim()]
+      [normalizedEmail]
     );
 
+    // User does not exist
     if (result.rows.length === 0) {
+      logger.warn("Failed login attempt", {
+        email: normalizedEmail,
+      });
+
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
@@ -93,13 +105,18 @@ const loginUser = async (req, res) => {
 
     const user = result.rows[0];
 
-    // Compare password with stored hash
+    // Compare password
     const isPasswordValid = await bcrypt.compare(
       password,
       user.password_hash
     );
 
+    // Password is incorrect
     if (!isPasswordValid) {
+      logger.warn("Failed login attempt", {
+        email: normalizedEmail,
+      });
+
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
@@ -118,6 +135,11 @@ const loginUser = async (req, res) => {
       }
     );
 
+    logger.info("User logged in successfully", {
+      userId: user.id,
+      email: user.email,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Login successful",
@@ -131,7 +153,9 @@ const loginUser = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Login error:", error);
+    logger.error("Login error", {
+      error: error.message,
+    });
 
     return res.status(500).json({
       success: false,
